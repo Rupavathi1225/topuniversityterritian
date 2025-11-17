@@ -17,7 +17,10 @@ export type Database = {
       click_tracking: {
         Row: {
           clicked_at: string
+          country: string | null
+          device: string | null
           id: string
+          ip_address: string | null
           link_id: string
           link_name: string
           link_url: string
@@ -25,7 +28,10 @@ export type Database = {
         }
         Insert: {
           clicked_at?: string
+          country?: string | null
+          device?: string | null
           id?: string
+          ip_address?: string | null
           link_id: string
           link_name: string
           link_url: string
@@ -33,13 +39,89 @@ export type Database = {
         }
         Update: {
           clicked_at?: string
+          country?: string | null
+          device?: string | null
           id?: string
+          ip_address?: string | null
           link_id?: string
           link_name?: string
           link_url?: string
           session_id?: string
         }
         Relationships: []
+      }
+      email_captures: {
+        Row: {
+          captured_at: string | null
+          country: string | null
+          email: string
+          id: string
+          ip_address: string | null
+          session_id: string
+          web_result_id: string | null
+        }
+        Insert: {
+          captured_at?: string | null
+          country?: string | null
+          email: string
+          id?: string
+          ip_address?: string | null
+          session_id: string
+          web_result_id?: string | null
+        }
+        Update: {
+          captured_at?: string | null
+          country?: string | null
+          email?: string
+          id?: string
+          ip_address?: string | null
+          session_id?: string
+          web_result_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "email_captures_web_result_id_fkey"
+            columns: ["web_result_id"]
+            isOneToOne: false
+            referencedRelation: "web_results"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      geo_restrictions: {
+        Row: {
+          allowed_countries: string[] | null
+          backlink: string
+          created_at: string | null
+          id: string
+          updated_at: string | null
+          web_result_id: string
+        }
+        Insert: {
+          allowed_countries?: string[] | null
+          backlink: string
+          created_at?: string | null
+          id?: string
+          updated_at?: string | null
+          web_result_id: string
+        }
+        Update: {
+          allowed_countries?: string[] | null
+          backlink?: string
+          created_at?: string | null
+          id?: string
+          updated_at?: string | null
+          web_result_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "geo_restrictions_web_result_id_fkey"
+            columns: ["web_result_id"]
+            isOneToOne: false
+            referencedRelation: "web_results"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       landing_content: {
         Row: {
@@ -91,6 +173,62 @@ export type Database = {
           viewed_at?: string
         }
         Relationships: []
+      }
+      prelanding_pages: {
+        Row: {
+          background_color: string | null
+          background_image_url: string | null
+          button_color: string | null
+          button_text: string
+          created_at: string | null
+          description: string | null
+          email_required: boolean | null
+          headline: string
+          id: string
+          logo_url: string | null
+          main_image_url: string | null
+          updated_at: string | null
+          web_result_id: string | null
+        }
+        Insert: {
+          background_color?: string | null
+          background_image_url?: string | null
+          button_color?: string | null
+          button_text?: string
+          created_at?: string | null
+          description?: string | null
+          email_required?: boolean | null
+          headline?: string
+          id?: string
+          logo_url?: string | null
+          main_image_url?: string | null
+          updated_at?: string | null
+          web_result_id?: string | null
+        }
+        Update: {
+          background_color?: string | null
+          background_image_url?: string | null
+          button_color?: string | null
+          button_text?: string
+          created_at?: string | null
+          description?: string | null
+          email_required?: boolean | null
+          headline?: string
+          id?: string
+          logo_url?: string | null
+          main_image_url?: string | null
+          updated_at?: string | null
+          web_result_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "prelanding_pages_web_result_id_fkey"
+            columns: ["web_result_id"]
+            isOneToOne: true
+            referencedRelation: "web_results"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       search_buttons: {
         Row: {

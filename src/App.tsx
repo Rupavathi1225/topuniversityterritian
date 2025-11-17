@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Landing from "./pages/Landing";
 import WebResult from "./pages/WebResult";
+import PrelandingPage from "./pages/PrelandingPage";
 import Admin from "./pages/Admin";
 import NotFound from "./pages/NotFound";
 
@@ -23,6 +24,7 @@ const App = () => (
           <Route path="/wr=3" element={<WebResult pageNumber={3} />} />
           <Route path="/wr=4" element={<WebResult pageNumber={4} />} />
           <Route path="/wr=5" element={<WebResult pageNumber={5} />} />
+          <Route path="/prelanding/:webResultId" element={<PrelandingPage />} />
           <Route path="/admin" element={<Admin />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />

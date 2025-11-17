@@ -46,8 +46,15 @@ export const trackPageView = async (pagePath: string, pageTitle: string) => {
   }
 };
 
-// Track a click
-export const trackClick = async (linkId: string, linkUrl: string, linkName: string) => {
+// Track a click with geolocation
+export const trackClick = async (
+  linkId: string, 
+  linkUrl: string, 
+  linkName: string,
+  ipAddress?: string,
+  country?: string,
+  device?: string
+) => {
   const sessionId = getSessionId();
   
   const { error } = await supabase.from('click_tracking').insert({
@@ -55,6 +62,9 @@ export const trackClick = async (linkId: string, linkUrl: string, linkName: stri
     link_id: linkId,
     link_url: linkUrl,
     link_name: linkName,
+    ip_address: ipAddress || null,
+    country: country || null,
+    device: device || null,
     clicked_at: new Date().toISOString()
   });
   

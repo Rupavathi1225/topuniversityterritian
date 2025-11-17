@@ -18,6 +18,9 @@ interface Click {
   link_name: string;
   link_url: string;
   clicked_at: string;
+  ip_address: string | null;
+  country: string | null;
+  device: string | null;
 }
 
 interface Session {
@@ -34,6 +37,7 @@ const AnalyticsTab = () => {
   const [totalSessions, setTotalSessions] = useState(0);
   const [totalPageViews, setTotalPageViews] = useState(0);
   const [totalClicks, setTotalClicks] = useState(0);
+  const [uniqueClicks, setUniqueClicks] = useState(0);
   const [sessions, setSessions] = useState<Session[]>([]);
   const [expandedSession, setExpandedSession] = useState<string | null>(null);
 
@@ -62,6 +66,12 @@ const AnalyticsTab = () => {
     setTotalSessions(sessionsData.length);
     setTotalPageViews(pageViewsData.length);
     setTotalClicks(clicksData.length);
+
+    // Calculate unique clicks (unique session_id + link_id combinations)
+    const uniqueClickSet = new Set(
+      clicksData.map((c: any) => `${c.session_id}_${c.link_id}`)
+    );
+    setUniqueClicks(uniqueClickSet.size);
 
     // Group by session
     const sessionMap = new Map<string, Session>();
@@ -132,7 +142,7 @@ const AnalyticsTab = () => {
       </CardHeader>
       <CardContent className="space-y-6">
         {/* Summary Cards */}
-        <div className="grid grid-cols-3 gap-4">
+        <div className="grid grid-cols-4 gap-4">
           <Card className="bg-secondary border-border">
             <CardContent className="pt-6">
               <div className="text-3xl font-bold text-primary">{totalSessions}</div>
@@ -151,7 +161,14 @@ const AnalyticsTab = () => {
             <CardContent className="pt-6">
               <div className="text-3xl font-bold text-amber-500">{totalClicks}</div>
               <div className="text-sm text-muted-foreground">Total Clicks</div>
-              <div className="text-xs text-muted-foreground mt-1">Buttons and links clicked</div>
+              <div className="text-xs text-muted-foreground mt-1">All clicks tracked</div>
+            </CardContent>
+          </Card>
+          <Card className="bg-secondary border-border">
+            <CardContent className="pt-6">
+              <div className="text-3xl font-bold text-emerald-500">{uniqueClicks}</div>
+              <div className="text-sm text-muted-foreground">Unique Clicks</div>
+              <div className="text-xs text-muted-foreground mt-1">Distinct click events</div>
             </CardContent>
           </Card>
         </div>
@@ -248,12 +265,25 @@ const AnalyticsTab = () => {
                                 </h4>
                                 <div className="space-y-1">
                                   {session.clicksList.map((click) => (
-                                    <div key={click.id} className="flex items-center justify-between text-xs bg-background p-2 rounded">
-                                      <div className="flex-1">
-                                        <span className="font-medium">{click.link_name}</span>
-                                        <span className="text-muted-foreground ml-2 truncate max-w-md inline-block">
-                                          {click.link_url}
-                                        </span>
+                                    <div key={click.id} className="flex items-center justify-between text-xs bg-background p-3 rounded space-y-1">
+                                      <div className="flex-1 space-y-1">
+                                        <div>
+                                          <span className="font-medium">{click.link_name}</span>
+                                          <span className="text-muted-foreground ml-2 truncate max-w-md inline-block">
+                                            {click.link_url}
+                                          </span>
+                                        </div>
+                                        <div className="flex gap-3 text-muted-foreground">
+                                          {click.ip_address && (
+                                            <span className="font-mono">IP: {click.ip_address}</span>
+                                          )}
+                                          {click.country && (
+                                            <Badge variant="secondary" className="text-xs">{click.country}</Badge>
+                                          )}
+                                          {click.device && (
+                                            <span>Device: {click.device}</span>
+                                          )}
+                                        </div>
                                       </div>
                                       <span className="text-muted-foreground">
                                         {new Date(click.clicked_at).toLocaleTimeString()}
