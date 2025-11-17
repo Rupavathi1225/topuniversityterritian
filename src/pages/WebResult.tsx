@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { ArrowLeft, ExternalLink } from "lucide-react";
 import { getSessionId, trackClick, trackPageView } from "@/utils/sessionTracking";
@@ -15,17 +15,18 @@ interface WebResult {
   serial_number: number;
 }
 
-const WebResult = () => {
+interface WebResultProps {
+  pageNumber: number;
+}
+
+const WebResult = ({ pageNumber }: WebResultProps) => {
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
-  const pageNumber = parseInt(searchParams.get("wr") || "1");
-  
   const [sponsoredResults, setSponsoredResults] = useState<WebResult[]>([]);
   const [regularResults, setRegularResults] = useState<WebResult[]>([]);
 
   useEffect(() => {
     getSessionId(); // Initialize session tracking
-    trackPageView(`/webresult?wr=${pageNumber}`, `Web Results Page ${pageNumber}`);
+    trackPageView(`/wr=${pageNumber}`, `Web Results Page ${pageNumber}`);
     fetchResults();
   }, [pageNumber]);
 
