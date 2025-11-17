@@ -14,7 +14,150 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      click_tracking: {
+        Row: {
+          clicked_at: string
+          id: string
+          link_id: string
+          link_name: string
+          link_url: string
+          session_id: string
+        }
+        Insert: {
+          clicked_at?: string
+          id?: string
+          link_id: string
+          link_name: string
+          link_url: string
+          session_id: string
+        }
+        Update: {
+          clicked_at?: string
+          id?: string
+          link_id?: string
+          link_name?: string
+          link_url?: string
+          session_id?: string
+        }
+        Relationships: []
+      }
+      landing_content: {
+        Row: {
+          created_at: string
+          description: string
+          id: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description: string
+          id?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string
+          id?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      search_buttons: {
+        Row: {
+          created_at: string
+          id: string
+          link: string | null
+          serial_number: number
+          title: string
+          updated_at: string
+          web_result_page: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          link?: string | null
+          serial_number: number
+          title: string
+          updated_at?: string
+          web_result_page?: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          link?: string | null
+          serial_number?: number
+          title?: string
+          updated_at?: string
+          web_result_page?: number
+        }
+        Relationships: []
+      }
+      sessions: {
+        Row: {
+          id: string
+          last_activity: string
+          session_id: string
+          started_at: string
+        }
+        Insert: {
+          id?: string
+          last_activity?: string
+          session_id: string
+          started_at?: string
+        }
+        Update: {
+          id?: string
+          last_activity?: string
+          session_id?: string
+          started_at?: string
+        }
+        Relationships: []
+      }
+      web_results: {
+        Row: {
+          created_at: string
+          description: string
+          id: string
+          is_sponsored: boolean | null
+          link: string
+          logo_url: string | null
+          name: string
+          serial_number: number
+          title: string
+          updated_at: string
+          web_result_page: number
+        }
+        Insert: {
+          created_at?: string
+          description: string
+          id?: string
+          is_sponsored?: boolean | null
+          link: string
+          logo_url?: string | null
+          name: string
+          serial_number: number
+          title: string
+          updated_at?: string
+          web_result_page?: number
+        }
+        Update: {
+          created_at?: string
+          description?: string
+          id?: string
+          is_sponsored?: boolean | null
+          link?: string
+          logo_url?: string | null
+          name?: string
+          serial_number?: number
+          title?: string
+          updated_at?: string
+          web_result_page?: number
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
