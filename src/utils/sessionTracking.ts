@@ -29,6 +29,23 @@ export const getSessionId = (): string => {
   return sessionId;
 };
 
+// Track a page view
+export const trackPageView = async (pagePath: string, pageTitle: string) => {
+  const sessionId = getSessionId();
+  
+  const { error } = await supabase.from('page_views').insert({
+    session_id: sessionId,
+    page_path: pagePath,
+    page_title: pageTitle,
+    referrer: document.referrer || null,
+    viewed_at: new Date().toISOString()
+  });
+  
+  if (error) {
+    console.error('Error tracking page view:', error);
+  }
+};
+
 // Track a click
 export const trackClick = async (linkId: string, linkUrl: string, linkName: string) => {
   const sessionId = getSessionId();

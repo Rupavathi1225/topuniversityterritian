@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Search, ChevronRight } from "lucide-react";
-import { getSessionId } from "@/utils/sessionTracking";
+import { getSessionId, trackPageView } from "@/utils/sessionTracking";
 
 interface LandingContent {
   id: string;
@@ -24,6 +24,7 @@ const Landing = () => {
 
   useEffect(() => {
     getSessionId(); // Initialize session tracking
+    trackPageView("/", "Landing Page - TopUniversityTerritian");
     fetchContent();
     fetchButtons();
   }, []);
