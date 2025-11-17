@@ -57,7 +57,7 @@ const Landing = () => {
   };
 
   const handleButtonClick = (pageNumber: number) => {
-    navigate(`/webresult?wr=${pageNumber}`);
+    navigate(`/wr=${pageNumber}`);
   };
 
   return (

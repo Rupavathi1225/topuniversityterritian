@@ -142,11 +142,11 @@ const SearchButtonsTab = () => {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="1">Page 1 (wr=1)</SelectItem>
-                  <SelectItem value="2">Page 2 (wr=2)</SelectItem>
-                  <SelectItem value="3">Page 3 (wr=3)</SelectItem>
-                  <SelectItem value="4">Page 4 (wr=4)</SelectItem>
-                  <SelectItem value="5">Page 5 (wr=5)</SelectItem>
+                  <SelectItem value="1">Page 1 (/wr=1)</SelectItem>
+                  <SelectItem value="2">Page 2 (/wr=2)</SelectItem>
+                  <SelectItem value="3">Page 3 (/wr=3)</SelectItem>
+                  <SelectItem value="4">Page 4 (/wr=4)</SelectItem>
+                  <SelectItem value="5">Page 5 (/wr=5)</SelectItem>
                 </SelectContent>
               </Select>
             </div>

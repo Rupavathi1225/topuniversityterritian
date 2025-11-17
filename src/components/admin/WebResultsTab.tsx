@@ -233,11 +233,11 @@ const WebResultsTab = () => {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="1">📄 Page 1 - URL: /webresult?wr=1</SelectItem>
-                  <SelectItem value="2">📄 Page 2 - URL: /webresult?wr=2</SelectItem>
-                  <SelectItem value="3">📄 Page 3 - URL: /webresult?wr=3</SelectItem>
-                  <SelectItem value="4">📄 Page 4 - URL: /webresult?wr=4</SelectItem>
-                  <SelectItem value="5">📄 Page 5 - URL: /webresult?wr=5</SelectItem>
+                  <SelectItem value="1">📄 Page 1 - URL: /wr=1</SelectItem>
+                  <SelectItem value="2">📄 Page 2 - URL: /wr=2</SelectItem>
+                  <SelectItem value="3">📄 Page 3 - URL: /wr=3</SelectItem>
+                  <SelectItem value="4">📄 Page 4 - URL: /wr=4</SelectItem>
+                  <SelectItem value="5">📄 Page 5 - URL: /wr=5</SelectItem>
                 </SelectContent>
               </Select>
               <p className="text-xs text-muted-foreground">
@@ -275,7 +275,7 @@ const WebResultsTab = () => {
               <div key={page} className="space-y-2 p-4 bg-secondary/30 rounded-lg">
                 <div className="flex items-center justify-between">
                   <h4 className="text-sm font-medium text-primary flex items-center gap-2">
-                    📄 Page {page} - URL: /webresult?wr={page}
+                    📄 Page {page} - URL: /wr={page}
                     <span className="text-xs text-muted-foreground">
                       ({pageResults.length} result{pageResults.length !== 1 ? 's' : ''})
                     </span>
@@ -332,9 +332,9 @@ const WebResultsTab = () => {
               💡 How It Works
             </h4>
             <ul className="text-xs text-muted-foreground space-y-1">
-              <li>• When users click <strong>"Related Category Box 1"</strong> → They see Page 1 results</li>
-              <li>• When users click <strong>"Related Category Box 2"</strong> → They see Page 2 results</li>
-              <li>• Each box redirects to its own page: /webresult?wr=1, /webresult?wr=2, etc.</li>
+              <li>• When users click <strong>"Related Category Box 1"</strong> → They see Page 1 results at <strong>/wr=1</strong></li>
+              <li>• When users click <strong>"Related Category Box 2"</strong> → They see Page 2 results at <strong>/wr=2</strong></li>
+              <li>• Each box redirects to its own page: /wr=1, /wr=2, /wr=3, /wr=4, /wr=5</li>
               <li>• Organize your results by selecting the correct page number when adding them</li>
             </ul>
           </div>

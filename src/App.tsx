@@ -18,7 +18,11 @@ const App = () => (
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Landing />} />
-          <Route path="/webresult" element={<WebResult />} />
+          <Route path="/wr=1" element={<WebResult pageNumber={1} />} />
+          <Route path="/wr=2" element={<WebResult pageNumber={2} />} />
+          <Route path="/wr=3" element={<WebResult pageNumber={3} />} />
+          <Route path="/wr=4" element={<WebResult pageNumber={4} />} />
+          <Route path="/wr=5" element={<WebResult pageNumber={5} />} />
           <Route path="/admin" element={<Admin />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
