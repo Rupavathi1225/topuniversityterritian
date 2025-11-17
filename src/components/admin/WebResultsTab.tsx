@@ -227,19 +227,22 @@ const WebResultsTab = () => {
               />
             </div>
             <div className="space-y-2">
-              <Label>Web Result Page</Label>
+              <Label>Web Result Page (Where to Display)</Label>
               <Select value={formData.web_result_page} onValueChange={(v) => setFormData({ ...formData, web_result_page: v })}>
                 <SelectTrigger className="bg-background border-border">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="1">Page 1 (wr=1)</SelectItem>
-                  <SelectItem value="2">Page 2 (wr=2)</SelectItem>
-                  <SelectItem value="3">Page 3 (wr=3)</SelectItem>
-                  <SelectItem value="4">Page 4 (wr=4)</SelectItem>
-                  <SelectItem value="5">Page 5 (wr=5)</SelectItem>
+                  <SelectItem value="1">📄 Page 1 - URL: /webresult?wr=1</SelectItem>
+                  <SelectItem value="2">📄 Page 2 - URL: /webresult?wr=2</SelectItem>
+                  <SelectItem value="3">📄 Page 3 - URL: /webresult?wr=3</SelectItem>
+                  <SelectItem value="4">📄 Page 4 - URL: /webresult?wr=4</SelectItem>
+                  <SelectItem value="5">📄 Page 5 - URL: /webresult?wr=5</SelectItem>
                 </SelectContent>
               </Select>
+              <p className="text-xs text-muted-foreground">
+                Select which web result page this item should appear on
+              </p>
             </div>
             <div className="flex items-center space-x-2">
               <Checkbox
@@ -264,14 +267,23 @@ const WebResultsTab = () => {
         </div>
 
         <div className="space-y-3">
-          <h3 className="font-medium">Existing Results</h3>
+          <h3 className="font-medium">Existing Results (Organized by Page)</h3>
           {[1, 2, 3, 4, 5].map((page) => {
             const pageResults = results.filter(r => r.web_result_page === page);
-            if (pageResults.length === 0) return null;
             
             return (
-              <div key={page} className="space-y-2">
-                <h4 className="text-sm font-medium text-primary">Page {page} (wr={page})</h4>
+              <div key={page} className="space-y-2 p-4 bg-secondary/30 rounded-lg">
+                <div className="flex items-center justify-between">
+                  <h4 className="text-sm font-medium text-primary flex items-center gap-2">
+                    📄 Page {page} - URL: /webresult?wr={page}
+                    <span className="text-xs text-muted-foreground">
+                      ({pageResults.length} result{pageResults.length !== 1 ? 's' : ''})
+                    </span>
+                  </h4>
+                  {pageResults.length === 0 && (
+                    <span className="text-xs text-muted-foreground italic">No results yet</span>
+                  )}
+                </div>
                 {pageResults.map((result) => (
                   <div
                     key={result.id}
@@ -314,6 +326,18 @@ const WebResultsTab = () => {
               </div>
             );
           })}
+          
+          <div className="mt-6 p-4 bg-primary/5 border border-primary/20 rounded-lg">
+            <h4 className="text-sm font-semibold mb-2 flex items-center gap-2">
+              💡 How It Works
+            </h4>
+            <ul className="text-xs text-muted-foreground space-y-1">
+              <li>• When users click <strong>"Related Category Box 1"</strong> → They see Page 1 results</li>
+              <li>• When users click <strong>"Related Category Box 2"</strong> → They see Page 2 results</li>
+              <li>• Each box redirects to its own page: /webresult?wr=1, /webresult?wr=2, etc.</li>
+              <li>• Organize your results by selecting the correct page number when adding them</li>
+            </ul>
+          </div>
         </div>
       </CardContent>
     </Card>
