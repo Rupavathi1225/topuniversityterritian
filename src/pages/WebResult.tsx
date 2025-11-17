@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { ArrowLeft, ExternalLink } from "lucide-react";
 import { getSessionId, trackClick, trackPageView } from "@/utils/sessionTracking";
+import { getGeolocation, getDeviceType } from "@/utils/geolocation";
 
 interface WebResult {
   id: string;
@@ -49,8 +50,28 @@ const WebResult = ({ pageNumber }: WebResultProps) => {
 
   const handleLinkClick = async (result: WebResult, e: React.MouseEvent) => {
     e.preventDefault();
-    await trackClick(result.id, result.link, result.name);
-    window.location.href = result.link;
+    
+    // Get geolocation data
+    const geoData = await getGeolocation();
+    const device = getDeviceType();
+    
+    // Track the click with geo data
+    await trackClick(result.id, result.link, result.name, geoData.ip, geoData.country, device);
+    
+    // Check if there's a prelanding page for this result
+    const { data: prelandingData } = await supabase
+      .from("prelanding_pages")
+      .select("id")
+      .eq("web_result_id", result.id)
+      .maybeSingle();
+    
+    if (prelandingData) {
+      // Redirect to prelanding page
+      window.location.href = `/prelanding/${result.id}`;
+    } else {
+      // Direct redirect to the link
+      window.location.href = result.link;
+    }
   };
 
   const getLogoDisplay = (name: string, logoUrl: string | null) => {
