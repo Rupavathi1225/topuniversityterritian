@@ -3,12 +3,15 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
 
 interface PageView {
   id: string;
   session_id: string;
   page_path: string;
   page_title: string;
+  referrer: string | null;
   viewed_at: string;
 }
 
@@ -23,6 +26,16 @@ interface Click {
   device: string | null;
 }
 
+interface Email {
+  id: string;
+  session_id: string;
+  email: string;
+  web_result_id: string | null;
+  country: string | null;
+  ip_address: string | null;
+  captured_at: string;
+}
+
 interface Session {
   session_id: string;
   started_at: string;
@@ -31,6 +44,11 @@ interface Session {
   clicks: number;
   pagesList: PageView[];
   clicksList: Click[];
+  emailsList: Email[];
+  ip_address: string | null;
+  country: string | null;
+  device: string | null;
+  referrer: string | null;
 }
 
 const AnalyticsTab = () => {
@@ -38,8 +56,13 @@ const AnalyticsTab = () => {
   const [totalPageViews, setTotalPageViews] = useState(0);
   const [totalClicks, setTotalClicks] = useState(0);
   const [uniqueClicks, setUniqueClicks] = useState(0);
+  const [totalEmails, setTotalEmails] = useState(0);
   const [sessions, setSessions] = useState<Session[]>([]);
   const [expandedSession, setExpandedSession] = useState<string | null>(null);
+  const [countryFilter, setCountryFilter] = useState<string>("all");
+  const [sourceFilter, setSourceFilter] = useState<string>("all");
+  const [countries, setCountries] = useState<string[]>([]);
+  const [sources, setSources] = useState<string[]>([]);
 
   useEffect(() => {
     fetchAnalytics();
@@ -47,31 +70,49 @@ const AnalyticsTab = () => {
 
   const fetchAnalytics = async () => {
     // Fetch all data
-    const [sessionsRes, pageViewsRes, clicksRes] = await Promise.all([
+    const [sessionsRes, pageViewsRes, clicksRes, emailsRes] = await Promise.all([
       supabase.from("sessions").select("*").order("started_at", { ascending: false }),
       supabase.from("page_views").select("*").order("viewed_at", { ascending: false }),
-      supabase.from("click_tracking").select("*").order("clicked_at", { ascending: false })
+      supabase.from("click_tracking").select("*").order("clicked_at", { ascending: false }),
+      supabase.from("email_captures").select("*").order("captured_at", { ascending: false })
     ]);
 
-    if (sessionsRes.error || pageViewsRes.error || clicksRes.error) {
-      console.error("Error fetching analytics:", sessionsRes.error || pageViewsRes.error || clicksRes.error);
+    if (sessionsRes.error || pageViewsRes.error || clicksRes.error || emailsRes.error) {
+      console.error("Error fetching analytics:", sessionsRes.error || pageViewsRes.error || clicksRes.error || emailsRes.error);
       return;
     }
 
     const pageViewsData = pageViewsRes.data || [];
     const clicksData = clicksRes.data || [];
     const sessionsData = sessionsRes.data || [];
+    const emailsData = emailsRes.data || [];
 
     // Set totals
     setTotalSessions(sessionsData.length);
     setTotalPageViews(pageViewsData.length);
     setTotalClicks(clicksData.length);
+    setTotalEmails(emailsData.length);
 
-    // Calculate unique clicks (unique session_id + link_id combinations)
+    // Calculate unique clicks
     const uniqueClickSet = new Set(
       clicksData.map((c: any) => `${c.session_id}_${c.link_id}`)
     );
     setUniqueClicks(uniqueClickSet.size);
+
+    // Extract unique countries and sources for filters
+    const countriesSet = new Set<string>();
+    const sourcesSet = new Set<string>();
+    
+    clicksData.forEach((click: Click) => {
+      if (click.country) countriesSet.add(click.country);
+    });
+    
+    pageViewsData.forEach((view: PageView) => {
+      if (view.referrer) sourcesSet.add(view.referrer);
+    });
+
+    setCountries(Array.from(countriesSet));
+    setSources(Array.from(sourcesSet));
 
     // Group by session
     const sessionMap = new Map<string, Session>();
@@ -85,6 +126,11 @@ const AnalyticsTab = () => {
         clicks: 0,
         pagesList: [],
         clicksList: [],
+        emailsList: [],
+        ip_address: null,
+        country: null,
+        device: null,
+        referrer: null,
       });
     });
 
@@ -94,8 +140,10 @@ const AnalyticsTab = () => {
       if (session) {
         session.pageViews++;
         session.pagesList.push(view);
+        if (!session.referrer && view.referrer) {
+          session.referrer = view.referrer;
+        }
       } else {
-        // Create session if doesn't exist
         sessionMap.set(view.session_id, {
           session_id: view.session_id,
           started_at: view.viewed_at,
@@ -104,6 +152,11 @@ const AnalyticsTab = () => {
           clicks: 0,
           pagesList: [view],
           clicksList: [],
+          emailsList: [],
+          ip_address: null,
+          country: null,
+          device: null,
+          referrer: view.referrer,
         });
       }
     });
@@ -114,6 +167,29 @@ const AnalyticsTab = () => {
       if (session) {
         session.clicks++;
         session.clicksList.push(click);
+        if (!session.ip_address && click.ip_address) {
+          session.ip_address = click.ip_address;
+        }
+        if (!session.country && click.country) {
+          session.country = click.country;
+        }
+        if (!session.device && click.device) {
+          session.device = click.device;
+        }
+      }
+    });
+
+    // Add emails to sessions
+    emailsData.forEach((email) => {
+      const session = sessionMap.get(email.session_id);
+      if (session) {
+        session.emailsList.push(email);
+        if (!session.ip_address && email.ip_address) {
+          session.ip_address = email.ip_address;
+        }
+        if (!session.country && email.country) {
+          session.country = email.country;
+        }
       }
     });
 
@@ -135,6 +211,34 @@ const AnalyticsTab = () => {
     return `${diffMins}m ${diffSecs}s`;
   };
 
+  const getRelatedSearches = (session: Session) => {
+    const searches = session.clicksList.map((click) => click.link_name);
+    return [...new Set(searches)].join(", ") || "None";
+  };
+
+  const filteredSessions = sessions.filter((session) => {
+    if (countryFilter !== "all" && session.country !== countryFilter) return false;
+    if (sourceFilter !== "all" && session.referrer !== sourceFilter) return false;
+    return true;
+  });
+
+  const exportEmails = () => {
+    const allEmails = sessions.flatMap((s) => s.emailsList);
+    const csv = [
+      ["Email", "Session ID", "Country", "IP Address", "Captured At"].join(","),
+      ...allEmails.map((e) =>
+        [e.email, e.session_id, e.country || "", e.ip_address || "", e.captured_at].join(",")
+      ),
+    ].join("\n");
+
+    const blob = new Blob([csv], { type: "text/csv" });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "email-captures.csv";
+    a.click();
+  };
+
   return (
     <Card className="bg-card border-border">
       <CardHeader>
@@ -142,36 +246,83 @@ const AnalyticsTab = () => {
       </CardHeader>
       <CardContent className="space-y-6">
         {/* Summary Cards */}
-        <div className="grid grid-cols-4 gap-4">
+        <div className="grid grid-cols-5 gap-4">
           <Card className="bg-secondary border-border">
             <CardContent className="pt-6">
               <div className="text-3xl font-bold text-primary">{totalSessions}</div>
               <div className="text-sm text-muted-foreground">Total Sessions</div>
-              <div className="text-xs text-muted-foreground mt-1">Unique visitors tracked</div>
             </CardContent>
           </Card>
           <Card className="bg-secondary border-border">
             <CardContent className="pt-6">
               <div className="text-3xl font-bold text-accent">{totalPageViews}</div>
               <div className="text-sm text-muted-foreground">Page Views</div>
-              <div className="text-xs text-muted-foreground mt-1">Total pages viewed</div>
             </CardContent>
           </Card>
           <Card className="bg-secondary border-border">
             <CardContent className="pt-6">
               <div className="text-3xl font-bold text-amber-500">{totalClicks}</div>
               <div className="text-sm text-muted-foreground">Total Clicks</div>
-              <div className="text-xs text-muted-foreground mt-1">All clicks tracked</div>
             </CardContent>
           </Card>
           <Card className="bg-secondary border-border">
             <CardContent className="pt-6">
               <div className="text-3xl font-bold text-emerald-500">{uniqueClicks}</div>
               <div className="text-sm text-muted-foreground">Unique Clicks</div>
-              <div className="text-xs text-muted-foreground mt-1">Distinct click events</div>
+            </CardContent>
+          </Card>
+          <Card className="bg-secondary border-border">
+            <CardContent className="pt-6">
+              <div className="text-3xl font-bold text-purple-500">{totalEmails}</div>
+              <div className="text-sm text-muted-foreground">Email Captures</div>
             </CardContent>
           </Card>
         </div>
+
+        {/* Filters */}
+        <Card className="bg-secondary border-border">
+          <CardContent className="pt-6">
+            <div className="grid grid-cols-3 gap-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Country</label>
+                <Select value={countryFilter} onValueChange={setCountryFilter}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Countries</SelectItem>
+                    {countries.map((country) => (
+                      <SelectItem key={country} value={country}>
+                        {country}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Source</label>
+                <Select value={sourceFilter} onValueChange={setSourceFilter}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Sources</SelectItem>
+                    {sources.map((source) => (
+                      <SelectItem key={source} value={source}>
+                        {source}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="flex items-end">
+                <Button onClick={exportEmails} variant="outline">
+                  Export Emails
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Sessions Table */}
         <div className="space-y-4">
@@ -180,17 +331,20 @@ const AnalyticsTab = () => {
             <Table>
               <TableHeader>
                 <TableRow className="bg-secondary hover:bg-secondary">
-                  <TableHead className="w-[200px]">Session ID</TableHead>
-                  <TableHead>Started</TableHead>
-                  <TableHead>Duration</TableHead>
-                  <TableHead className="text-center">Page Views</TableHead>
+                  <TableHead className="w-[150px]">Session ID</TableHead>
+                  <TableHead>IP</TableHead>
+                  <TableHead>Country</TableHead>
+                  <TableHead>Source</TableHead>
+                  <TableHead>Device</TableHead>
+                  <TableHead className="text-center">Views</TableHead>
                   <TableHead className="text-center">Clicks</TableHead>
+                  <TableHead>Related Search</TableHead>
                   <TableHead>Last Active</TableHead>
                   <TableHead></TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {sessions.map((session) => (
+                {filteredSessions.map((session) => (
                   <>
                     <TableRow 
                       key={session.session_id}
@@ -200,15 +354,21 @@ const AnalyticsTab = () => {
                       )}
                     >
                       <TableCell className="font-mono text-xs">
-                        {session.session_id.substring(0, 25)}...
+                        {session.session_id.substring(0, 15)}...
                       </TableCell>
-                      <TableCell className="text-sm">
-                        {formatDate(session.started_at)}
+                      <TableCell className="text-xs">
+                        {session.ip_address || "-"}
                       </TableCell>
-                      <TableCell className="text-sm">
-                        <Badge variant="secondary">
-                          {getSessionDuration(session.started_at, session.last_activity)}
-                        </Badge>
+                      <TableCell>
+                        {session.country ? (
+                          <Badge variant="secondary">{session.country}</Badge>
+                        ) : "-"}
+                      </TableCell>
+                      <TableCell className="text-xs truncate max-w-[120px]">
+                        {session.referrer || "Direct"}
+                      </TableCell>
+                      <TableCell className="text-xs">
+                        {session.device || "-"}
                       </TableCell>
                       <TableCell className="text-center">
                         <Badge variant="outline" className="bg-accent/10 text-accent border-accent/20">
@@ -219,6 +379,9 @@ const AnalyticsTab = () => {
                         <Badge variant="outline" className="bg-amber-500/10 text-amber-500 border-amber-500/20">
                           {session.clicks}
                         </Badge>
+                      </TableCell>
+                      <TableCell className="text-xs truncate max-w-[150px]">
+                        {getRelatedSearches(session)}
                       </TableCell>
                       <TableCell className="text-sm">
                         {formatDate(session.last_activity)}
@@ -233,7 +396,7 @@ const AnalyticsTab = () => {
                     {/* Expanded Details */}
                     {expandedSession === session.session_id && (
                       <TableRow>
-                        <TableCell colSpan={7} className="bg-muted/30">
+                        <TableCell colSpan={10} className="bg-muted/30">
                           <div className="p-4 space-y-4">
                             {/* Page Views */}
                             {session.pagesList.length > 0 && (
@@ -294,7 +457,36 @@ const AnalyticsTab = () => {
                               </div>
                             )}
 
-                            {session.pagesList.length === 0 && session.clicksList.length === 0 && (
+                            {/* Email Captures */}
+                            {session.emailsList.length > 0 && (
+                              <div>
+                                <h4 className="font-semibold mb-2 text-sm flex items-center gap-2">
+                                  <span className="text-purple-500">📧</span> Email Captures ({session.emailsList.length})
+                                </h4>
+                                <div className="space-y-1">
+                                  {session.emailsList.map((email) => (
+                                    <div key={email.id} className="flex items-center justify-between text-xs bg-background p-3 rounded">
+                                      <div className="flex-1">
+                                        <span className="font-medium">{email.email}</span>
+                                        <div className="flex gap-3 text-muted-foreground mt-1">
+                                          {email.ip_address && (
+                                            <span className="font-mono">IP: {email.ip_address}</span>
+                                          )}
+                                          {email.country && (
+                                            <Badge variant="secondary" className="text-xs">{email.country}</Badge>
+                                          )}
+                                        </div>
+                                      </div>
+                                      <span className="text-muted-foreground">
+                                        {new Date(email.captured_at).toLocaleTimeString()}
+                                      </span>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+
+                            {session.pagesList.length === 0 && session.clicksList.length === 0 && session.emailsList.length === 0 && (
                               <div className="text-sm text-muted-foreground text-center py-4">
                                 No activity recorded for this session
                               </div>
@@ -309,7 +501,7 @@ const AnalyticsTab = () => {
             </Table>
           </div>
 
-          {sessions.length === 0 && (
+          {filteredSessions.length === 0 && (
             <div className="text-center py-8 text-muted-foreground">
               No sessions tracked yet. Visit the site to start tracking.
             </div>
